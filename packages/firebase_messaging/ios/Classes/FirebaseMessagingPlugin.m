@@ -5,6 +5,7 @@
 #import "FirebaseMessagingPlugin.h"
 
 #import "Firebase/Firebase.h"
+#import <UserNotifications/UserNotifications.h>
 
 #if defined(__IPHONE_10_0) && __IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_10_0
 @interface FLTFirebaseMessagingPlugin () <FIRMessagingDelegate>
@@ -39,6 +40,9 @@
       NSLog(@"Configured the default Firebase app %@.", [FIRApp defaultApp].name);
     }
     [FIRMessaging messaging].delegate = self;
+    if(@available(iOS 10.0, *)) {
+        [UNUserNotificationCenter currentNotificationCenter].delegate = self;
+    }
   }
   return self;
 }
@@ -184,6 +188,10 @@
     @"alert" : [NSNumber numberWithBool:notificationSettings.types & UIUserNotificationTypeAlert],
   };
   [_channel invokeMethod:@"onIosSettingsRegistered" arguments:settingsDictionary];
+}
+
+-(void)userNotificationCenter:(UNUserNotificationCenter *)center willPresentNotification:(UNNotification *)notification withCompletionHandler:(void (^)(UNNotificationPresentationOptions options))completionHandler{
+    completionHandler(UNAuthorizationOptionSound | UNAuthorizationOptionAlert | UNAuthorizationOptionBadge);
 }
 
 - (void)messaging:(nonnull FIRMessaging *)messaging
